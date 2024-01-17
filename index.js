@@ -1,17 +1,23 @@
-
-
 let form = document.forms.create
 let cont = document.querySelector('.container')
 const spaan = document.querySelector('.top')
 const url = 'http://localhost:9000/users'
-let todos = []
 
-fetch(url)
-    .then(res => res.json())
-    .then(res => {
-        reload(res)
-        todos = res
-    })
+let todos = []
+function fetching() {
+    // fetch(url)
+    // .then(res => res.json())
+    // .then(res => {
+    //     reload(res, cont)
+    //     todos = res
+    // })
+    axios.get(url)
+        .then(data => {
+            todos = data.data
+            reload(todos, cont)
+        })
+}
+fetching()
 
 form.onsubmit = (e) => {
     e.preventDefault();
@@ -28,15 +34,14 @@ form.onsubmit = (e) => {
     })
         .then(res => res.json())
         .then(res => {
-            todos.push(res)
-            reload(todos)
+            fetching()
         })
-        }
+}
 
 
-function reload(arr) {
+function reload(arr, place) {
 
-    cont.innerHTML = ""
+    place.innerHTML = ""
 
     for (let item of arr) {
         let todo = document.createElement('div')
@@ -51,21 +56,70 @@ function reload(arr) {
 
         title.innerHTML = item.fullName
         remove_btn.innerHTML = "x"
-        remove_btn = () => {
-            fetch(url + "/" + item.id, {
-                method:'delete'
-            })
-            .then(res =>{
-                if(res.status === 200 || res.status === 201){
-                    cont.remove()
-                }
-            })
-        }
-
 
         top_div.append(title, remove_btn)
         todo.append(top_div, time)
         place.append(todo)
 
-        }
-    }
+        remove_btn.ondblclick = () => {
+            function fetch() {
+                axios.delete(url + "/" + item.id)
+                    .then(res => {
+                        if (res.status === 200 || res.status === 201) {
+                            todo.remove()
+                            todos = todos.filter(el => el.id !== item.id)
+                        } else {
+                            alert('no')
+                        }
+
+                    })
+                    .finally(() => console.log('ok'))
+                //             axios.delete(`${url}/1`).then((data) => {
+                //                 console.log(data.data);
+                //             }).catch((e)=> console.log(e)).finally(() => console.log('something done'));
+                //         }
+                // }}
+            }
+            fetch()
+          }
+
+//   const todoItem = document.querySelector('.todo-item');
+  // title.addEventListener('dblclick', () => {
+  //   const todoId = title.dataset.todoId;
+
+  //   const userInput = prompt('Введите новое значение для todo:');
+
+  //   if (userInput !== null) {
+  //     axios.patch(`http://localhost:9000/users${todoId}`, { text: userInput })
+  //       .then(response => {
+  //         console.log('Todo успешно изменен в бэкенде:', response.data);
+  //       })
+  //       .catch(error => {
+  //         console.error('Ошибка при изменении todo в бэкенде:', error);
+  //       });
+  //   }
+  // });{
+          title.ondblclick = () => {
+            function fetch () {
+            let newtext = prompt('change' + item.fullName)
+            fetch(url + "/" + item.id, {
+              method:"patch",
+              body:JSON.stringify({fullName:newtext}),
+              
+              headers: {
+                "Content-Type": "application/json", 
+              }
+            })
+            .then(res => {
+              if(res.status === 200 || res.status === 201) {
+                title.textContent = newtext
+                todos.find(el => el.id === item.id).fullName = newtext
+              }
+            })
+          }
+          
+
+
+     fetch()     
+
+    }}}
